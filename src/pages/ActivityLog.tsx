@@ -1,19 +1,7 @@
 import { usePackingContext } from '../context/AppContext';
-import { Clock, Plus, PackageCheck, PackageX } from 'lucide-react';
-import { State, Item, Category } from '../types';
-
-type ActivityType = 'ADD_ITEM' | 'PACK' | 'UNPACK' | 'UNPACK_ALL' | 'EDIT_ITEM';
-
-interface Activity {
-    id: string;
-    type: ActivityType;
-    itemId: string;
-    timestamp: string;
-    details?: {
-        oldName?: string;
-        newName?: string;
-    };
-}
+import { Clock, Plus, PackageCheck, PackageX, Tag } from 'lucide-react';
+import { State, Item, Category, ActivityType, Activity } from '../types';
+// import { categoryColors } from '../components/ItemCard';
 
 interface ExtendedState extends State {
     activityLog: Activity[];
@@ -32,6 +20,9 @@ const ActivityLog = () => {
         return groups;
     }, {});
 
+    // console.log("1:", activityLog);
+    // console.log("2: Activity grouped by data", groupedActivities);
+
     const recentlyAdded = activityLog
         .filter(activity => {
             const isRecent = Date.now() - new Date(activity.timestamp).getTime() < 24 * 60 * 60 * 1000;
@@ -49,6 +40,8 @@ const ActivityLog = () => {
             case 'UNPACK':
             case 'UNPACK_ALL':
                 return <PackageX className="w-5 h-5 text-orange-600" />;
+            case 'ADD_TAG':
+                return <Tag className="w-5 h-5 text-orange-600" />;
             default:
                 return <Clock className="w-5 h-5 text-gray-600" />;
         }
@@ -57,7 +50,8 @@ const ActivityLog = () => {
     const getActivityMessage = (activity: Activity): string => {
         const item = items.find(item => item.id === activity.itemId);
         const itemName = item?.name || 'Unknown item';
-        
+        console.log("item:", item);
+
         switch (activity.type) {
             case 'ADD_ITEM':
                 return `Added "${itemName}" to the list`;
@@ -69,6 +63,8 @@ const ActivityLog = () => {
                 return 'Unpacked all items';
             case 'EDIT_ITEM':
                 return `Renamed "${activity.details?.oldName}" to "${activity.details?.newName}"`;
+            case 'ADD_TAG':
+                return `Tag ${item?.tags} added to the item ${item?.name}`
             default:
                 return 'Unknown action';
         }
@@ -96,8 +92,8 @@ const ActivityLog = () => {
                     <h2 className="text-xl font-semibold mb-4">Recently Added</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {recentlyAdded.map(item => (
-                            <div 
-                                key={item.id} 
+                            <div
+                                key={item.id}
                                 className="flex items-center gap-2 p-3 bg-gray-50 rounded-md"
                             >
                                 <Plus className="w-4 h-4 text-green-600" />
@@ -119,8 +115,8 @@ const ActivityLog = () => {
                             <h3 className="text-sm font-medium text-gray-500">{date}</h3>
                             <div className="space-y-2">
                                 {activities.map((activity) => (
-                                    <div 
-                                        key={activity.id} 
+                                    <div
+                                        key={activity.id}
                                         className="flex items-center gap-3 p-3 bg-gray-50 rounded-md"
                                     >
                                         {getActivityIcon(activity.type)}

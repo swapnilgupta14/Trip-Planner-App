@@ -19,7 +19,10 @@ export interface Item {
   name: string;
   category: Category;
   isPacked: Boolean;
+  tags?: ItemTag[];
 }
+
+export type ItemTag = "essential" | "favorite" | "custom" | string;
 
 export interface State {
   items: Item[];
@@ -38,7 +41,15 @@ export type Action =
   | { type: "EDIT_ITEM_NAME"; payload: { id: string; name: string } }
   | { type: "UNPACK_ALL" }
   | { type: "ADD_CATEGORY"; payload: { name: string; color: string } }
-  | { type: "MOVE_ITEM"; id:string; isPacked: Boolean };
+  | { type: "MOVE_ITEM"; id: string; isPacked: Boolean }
+  | {
+      type: "ADD_ITEM_TAG";
+      payload: {
+        id: string;
+        tag: "essential" | "favorite" | "custom" | string;
+        customTag?: string;
+      };
+    };
 
 export type GroupedItems = {
   [K in Category]: Item[];
@@ -49,7 +60,8 @@ export type ActivityType =
   | "PACK"
   | "UNPACK"
   | "UNPACK_ALL"
-  | "EDIT_ITEM";
+  | "EDIT_ITEM"
+  | "ADD_TAG";
 
 export interface Activity {
   id: string;
@@ -59,5 +71,7 @@ export interface Activity {
   details?: {
     oldName?: string;
     newName?: string;
+    tag?: ItemTag;
+    tags?: ItemTag[];
   };
 }

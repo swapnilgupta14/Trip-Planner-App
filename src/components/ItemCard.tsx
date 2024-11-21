@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { usePackingContext } from '../context/AppContext';
-import { Item } from '../types';
-import { Pencil } from 'lucide-react';
+import { Item, ItemTag } from '../types';
 import { useDrag } from 'react-dnd';
+import { Pencil, Tag, Star, Edit, Heart } from 'lucide-react';
 
 export const ItemTypes = {
     PACKING_ITEM: 'PACKING_ITEM'
@@ -23,6 +23,7 @@ export const categoryColors: Record<string, string> = {
 
 export default function ItemCard({ item }: { item: Item }) {
 
+
     const [{ isDragging }, drag] = useDrag(() => ({
         type: ItemTypes.PACKING_ITEM,
         item: { id: item.id },
@@ -31,12 +32,150 @@ export default function ItemCard({ item }: { item: Item }) {
         })
     }));
 
-    // console.log(item)
     const { dispatch } = usePackingContext();
     const [isEditing, setIsEditing] = useState(false);
     const [editedName, setEditedName] = useState(item.name);
     const [error, setError] = useState("");
     const [isHovering, setIsHovering] = useState(false);
+
+
+    const [contextMenu, setContextMenu] = useState<{
+        visible: boolean,
+        x: number,
+        y: number,
+        subMenu?: string
+    }>({
+        visible: false,
+        x: 0,
+        y: 0,
+        subMenu: undefined
+    });
+    const contextMenuRef = useRef<HTMLDivElement>(null);
+
+    const handleContextMenu = (e: React.MouseEvent) => {
+        e.preventDefault();
+        setContextMenu({
+            visible: true,
+            x: e.clientX,
+            y: e.clientY
+        });
+    };
+
+    const handleTouchStart = (e: React.TouchEvent) => {
+        const touchTimer = setTimeout(() => {
+            const touch = e.touches[0];
+            setContextMenu({
+                visible: true,
+                x: touch.clientX,
+                y: touch.clientY
+            });
+        }, 500);
+
+        e.currentTarget.addEventListener('touchend', () => clearTimeout(touchTimer), { once: true });
+        e.currentTarget.addEventListener('touchmove', () => clearTimeout(touchTimer), { once: true });
+    };
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (contextMenuRef.current &&
+                !contextMenuRef.current.contains(event.target as Node)) {
+                setContextMenu(prev => ({ ...prev, visible: false, subMenu: undefined }));
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const addTag = (tag: ItemTag) => {
+        console.log("tags:", tag);
+        dispatch({
+            type: 'ADD_ITEM_TAG',
+            payload: { id: item.id, tag }
+        });
+        setContextMenu(prev => ({ ...prev, visible: false, subMenu: undefined }));
+    };
+
+    const openEditMode = () => {
+        setIsEditing(true);
+        setContextMenu({ visible: false, x: 0, y: 0 });
+    };
+
+    const renderContextMenu = () => {
+        if (!contextMenu.visible) return null;
+
+        return (
+            <div
+                ref={contextMenuRef}
+                className="fixed z-50 bg-white shadow-lg rounded-lg border"
+                style={{
+                    top: contextMenu.y,
+                    left: contextMenu.x,
+                    transform: 'translate(-50%, 10px)'
+                }}
+            >
+                {!contextMenu.subMenu && (
+                    <div className="p-2 min-w-[200px]">
+                        <div
+                            className="flex items-center p-2 hover:bg-gray-100 cursor-pointer"
+                            onClick={() => setContextMenu(prev => ({ ...prev, subMenu: 'tags' }))
+                            }>
+                            <Tag className="mr-2 h-4 w-4" />
+                            Add Tags
+                        </div>
+                        <div
+                            className="flex items-center p-2 hover:bg-gray-100 cursor-pointer"
+                            onClick={openEditMode}
+                        >
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit Item
+                        </div>
+                    </div>
+                )}
+
+                {contextMenu.subMenu === 'tags' && (
+                    <div className="p-2 min-w-[200px]">
+                        <div
+                            className="flex items-center p-2 hover:bg-gray-100 cursor-pointer"
+                            onClick={() => addTag('essential')}
+                        >
+                            <Star className="mr-2 h-4 w-4 text-yellow-500" />
+                            Essential Item
+                        </div>
+                        <div
+                            className="flex items-center p-2 hover:bg-gray-100 cursor-pointer"
+                            onClick={() => addTag('favorite')}
+                        >
+                            <Heart className="mr-2 h-4 w-4 text-red-500" />
+                            Favorite
+                        </div>
+                        <div
+                            className="flex items-center p-2 hover:bg-gray-100 cursor-pointer"
+                            onClick={() => setContextMenu(prev => ({ ...prev, subMenu: 'customTag' }))
+                            }>
+                            <Tag className="mr-2 h-4 w-4" />
+                            Custom Tag
+                        </div>
+                    </div>
+                )}
+
+                {contextMenu.subMenu === 'customTag' && (
+                    <div className="p-2 min-w-[200px]">
+                        <input
+                            type="text"
+                            placeholder="Enter custom tag"
+                            className="w-full p-2 border rounded mb-2"
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    setContextMenu(prev => ({ ...prev, visible: false, subMenu: undefined }));
+                                }
+                            }}
+                        />
+                    </div>
+                )}
+            </div>
+        );
+    };
 
     const handleEditClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
@@ -85,11 +224,13 @@ export default function ItemCard({ item }: { item: Item }) {
             ref={drag}
             style={{ opacity: isDragging ? 0.5 : 1 }}
             className="cursor-move bg-transparent rounded-xl"
+            onContextMenu={handleContextMenu}
+            onTouchStart={handleTouchStart}
         >
             <div className="relative">
                 <div
-                    className={`group w-fit px-6 py-2 rounded-xl flex justify-between items-center text-center cursor-pointer 
-                ${categoryColors[item.category]} hover:shadow-md transition-shadow relative`}
+                    className={`group w-fit px-6 py-2 rounded-xl flex justify-between items-center text-center cursor-pointer mb-2
+                    ${categoryColors[item.category]} hover:shadow-md transition-shadow relative`}
                     onClick={() => !isEditing && dispatch({ type: 'TOGGLE_PACK', payload: item.id })}
                     onMouseEnter={() => setIsHovering(true)}
                     onMouseLeave={() => setIsHovering(false)}
@@ -130,13 +271,32 @@ export default function ItemCard({ item }: { item: Item }) {
                     ) : (
                         <>
                             <span>{item.name}</span>
+
+                            {item.tags?.length !== undefined && item.tags?.length > 0 && (item.tags?.map((eachtag) =>
+                                <button
+                                    key={item.id + 'tagID'}
+                                    className="absolute left-0 -bottom-2 p-1 rounded-l-xl rounded-b-xl rounded-t-xl bg-white transition-colors shadow-sm border-black"
+                                    title="Tags"
+                                >
+                                    {eachtag === "essential" ? (
+                                        <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                                    ) : (
+                                        <Heart className="h-3 w-3 text-red-500 fill-red-500" />
+                                    )}
+
+                                </button>
+                            ))
+
+
+                            }
+
                             {item.isPacked && (
-                                <span className="text-black ml-2">×</span>
+                                <span className="text-black ml-2 bg-white p-1 pt-2 rounded-full h-4 w-4 flex flex-col items-center justify-center">×</span>
                             )}
                             {isHovering && !isEditing && (
                                 <button
                                     onClick={handleEditClick}
-                                    className="absolute right-0 bottom-0 p-1 rounded-l-xl rounded-b-xl rounded-t-xl bg-white 
+                                    className="absolute -right-1 -bottom-1 p-1 rounded-l-xl rounded-b-xl rounded-t-xl bg-white 
                                          transition-colors shadow-sm opacity-0 group-hover:opacity-100"
                                     title="Edit"
                                 >
@@ -152,6 +312,7 @@ export default function ItemCard({ item }: { item: Item }) {
                     </div>
                 )}
             </div>
+            {renderContextMenu()}
         </div>
     );
 }

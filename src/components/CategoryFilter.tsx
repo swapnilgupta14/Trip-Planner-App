@@ -19,7 +19,7 @@ export default function CategoryFilter() {
                         <button
                             key={category}
                             onClick={() => dispatch({ type: 'SET_CATEGORY', payload: category })}
-                            className={`shadow-lg px-4 py-2 rounded-3xl ${state.selectedCategory === category
+                            className={`shadow-sm px-4 py-2 rounded-3xl ${state.selectedCategory === category
                                     ? `${categoryColors[category]}`
                                     : ` bg-white hover:bg-zinc-300`
                                 } ${state.selectedCategory === "all" && index === 0 && "bg-black text-white"}`}
@@ -30,7 +30,7 @@ export default function CategoryFilter() {
                 </div>
                 <button
                     onClick={() => setIsPopupOpen(true)}
-                    className='px-6 py-2 rounded-3xl bg-white text-black hover:bg-black hover:text-white shadow-lg'
+                    className='px-6 py-2 rounded-3xl bg-white text-black hover:bg-black hover:text-white shadow-sm'
                 >
                     <span>+ New Category</span>
                 </button>

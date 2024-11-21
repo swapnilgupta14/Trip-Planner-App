@@ -37,8 +37,8 @@ export default function Unpacked() {
     const searchResults = filterBySearch(allItems);
 
     return (
-        <div className="w-1/2 p-4 bg-gray-100 rounded min-h-[83vh]">
-            <div className='flex justify-between items-center rounded-lg bg-gray-200 py-2 px-4 mb-4'>
+        <div className="w-1/2 p-4 bg-white rounded min-h-[83vh]">
+            <div className='flex justify-between items-center rounded-lg bg-gray-100 py-2 px-4 mb-4'>
                 <h2 className="text-xl font-medium">Unpacked Items ({allItems.length})</h2>
                 <div>
                     <SearchInput isPacked={false} />
@@ -46,7 +46,7 @@ export default function Unpacked() {
             </div>
             <div
                 ref={drop}
-                className={`min-h-[200px] ${isOver ? 'bg-gray-200' : ''} transition-colors duration-200`}
+                className={`min-h-[200px] p-2 ${isOver ? 'bg-gray-200 p-2 rounded-lg' : ''} transition-colors duration-200`}
             >
                 {state.unpackedSearchQuery && (
                     <>

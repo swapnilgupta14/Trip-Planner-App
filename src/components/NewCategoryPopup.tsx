@@ -106,7 +106,7 @@ const NewCategoryPopup = ({ isOpen, onClose }: NewCategoryPopupProps) => {
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Preview
                         </label>
-                        <div className={`px-4 py-2 rounded-3xl shadow-lg ${selectedColor}`}>
+                        <div className={`px-4 py-2 rounded-lg shadow-lg ${selectedColor}`}>
                             <span className="text-white">
                                 Item with {categoryName.length < 1 ? 'this category' : categoryName}
                             </span>

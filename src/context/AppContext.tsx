@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useReducer, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, useMemo } from 'react';
 import { initialItems } from '../items';
-import { State, Action, PackingContextType, Activity } from '../types';
+import { State, Action, PackingContextType, Activity, ItemTag } from '../types';
 import { toast } from 'react-toastify';
 
 const PackingContext = createContext<PackingContextType | undefined>(undefined);
@@ -45,8 +45,17 @@ const showToastForAction = (action: Action, state: State) => {
                 toast.success(`${movedItem.name} ${action.isPacked ? 'packed' : 'unpacked'}!`);
             }
             break;
-    }
-};
+        case 'ADD_ITEM_TAG':
+            const itemForAddingTag = state.items.find(item => item.id === action.payload.id);
+            if (itemForAddingTag) {
+                const tagName = action.payload.tag === 'custom' ?
+                    action.payload.customTag :
+                    action.payload.tag;
+                toast.success(`Tag "${tagName}" added to ${itemForAddingTag.name}!`);
+            }
+            break;
+    };
+}
 
 function packingReducer(state: State, action: Action): State {
     switch (action.type) {
@@ -148,6 +157,38 @@ function packingReducer(state: State, action: Action): State {
                 activityLog: [newActivity, ...state.activityLog]
             };
 
+        case 'ADD_ITEM_TAG': {
+            const item = state.items.find(item => item.id === action.payload.id);
+            if (!item) return state;
+
+            const newTag: ItemTag = action.payload.tag === 'custom'
+                ? action.payload.customTag || 'custom'
+                : action.payload.tag;
+
+            const updatedTags = item.tags && !item.tags.includes(newTag)
+                ? [...item.tags, newTag]
+                : (item.tags || [newTag]);
+
+            const newActivity: Activity = {
+                id: crypto.randomUUID(),
+                type: 'ADD_TAG',
+                itemId: action.payload.id,
+                timestamp: new Date().toISOString(),
+                details: {
+                    tag: newTag
+                }
+            };
+
+            return {
+                ...state,
+                items: state.items.map(item =>
+                    item.id === action.payload.id
+                        ? { ...item, tags: updatedTags }
+                        : item
+                ),
+                activityLog: [newActivity, ...state.activityLog]
+            };
+        }
 
         default:
             return state;
@@ -162,8 +203,10 @@ export function PackingProvider({ children }: { children: React.ReactNode }) {
         baseDispatch(action);
     }, [state]);
 
+    const value = useMemo(() => ({ state, dispatch }), [state, dispatch]);
+
     return (
-        <PackingContext.Provider value={{ state, dispatch }}>
+        <PackingContext.Provider value={value}>
             {children}
         </PackingContext.Provider>
     );

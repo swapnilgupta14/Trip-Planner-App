@@ -12,7 +12,7 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className="w-[4%] h-[100vh] bg-zinc-100 fixed left-0 top-0 flex flex-col items-center py-4">
+    <div className="w-[4%] h-[100vh] bg-white fixed left-0 top-0 flex flex-col items-center py-4">
       <div className="mb-8">
         <h1 className="text-lg bg-black text-white font-extrabold rounded-lg p-2 py-1">PA</h1>
       </div>
@@ -22,8 +22,8 @@ const Sidebar = () => {
           <button
             key={index}
             className={`flex flex-col items-center py-4 w-full ${location.pathname === item.path
-                ? 'bg-zinc-200 text-blue-500'
-                : 'text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900'
+                ? 'bg-[#eaeaea] text-blue-950'
+                : 'text-zinc-600 hover:bg-zinc-100 hover:text-black'
               } transition duration-200`}
             onClick={() => navigate(item.path)}
           >
