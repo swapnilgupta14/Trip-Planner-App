@@ -22,7 +22,7 @@ export interface Item {
   tags?: ItemTag[];
 }
 
-export type ItemTag = "essential" | "favorite" | "custom" | string;
+export type ItemTag = string;
 
 export interface State {
   items: Item[];
@@ -42,11 +42,10 @@ export type Action =
   | { type: "UNPACK_ALL" }
   | { type: "ADD_CATEGORY"; payload: { name: string; color: string } }
   | { type: "MOVE_ITEM"; id: string; isPacked: Boolean }
-  | {
-      type: "ADD_ITEM_TAG";
+  | { type: "ADD_ITEM_TAG";
       payload: {
         id: string;
-        tag: "essential" | "favorite" | "custom" | string;
+        tag: string;
         customTag?: string;
       };
     };

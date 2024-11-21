@@ -22,8 +22,6 @@ export const categoryColors: Record<string, string> = {
 };
 
 export default function ItemCard({ item }: { item: Item }) {
-
-
     const [{ isDragging }, drag] = useDrag(() => ({
         type: ItemTypes.PACKING_ITEM,
         item: { id: item.id },
@@ -223,13 +221,13 @@ export default function ItemCard({ item }: { item: Item }) {
         <div
             ref={drag}
             style={{ opacity: isDragging ? 0.5 : 1 }}
-            className="cursor-move bg-transparent rounded-xl"
+            className={`cursor-move bg-transparent rounded-xl mb-2`}
             onContextMenu={handleContextMenu}
             onTouchStart={handleTouchStart}
         >
             <div className="relative">
                 <div
-                    className={`group w-fit px-6 py-2 rounded-xl flex justify-between items-center text-center cursor-pointer mb-2
+                    className={`group w-fit px-6 py-2 rounded-xl flex justify-between items-center text-center cursor-pointer
                     ${categoryColors[item.category]} hover:shadow-md transition-shadow relative`}
                     onClick={() => !isEditing && dispatch({ type: 'TOGGLE_PACK', payload: item.id })}
                     onMouseEnter={() => setIsHovering(true)}
@@ -275,7 +273,7 @@ export default function ItemCard({ item }: { item: Item }) {
                             {item.tags?.length !== undefined && item.tags?.length > 0 && (item.tags?.map((eachtag) =>
                                 <button
                                     key={item.id + 'tagID'}
-                                    className="absolute left-0 -bottom-2 p-1 rounded-l-xl rounded-b-xl rounded-t-xl bg-white transition-colors shadow-sm border-black"
+                                    className={`absolute left-0 -bottom-2 p-1 rounded-l-xl rounded-b-xl rounded-t-xl bg-white border-2 border-${categoryColors[item.category].split("bg-")[1]} transition-colors shadow-sm`}
                                     title="Tags"
                                 >
                                     {eachtag === "essential" ? (
